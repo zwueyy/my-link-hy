@@ -1,19 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { UserProfile } from "@/types";
 import {
-  Check,
-  Copy,
   Share2,
-  MapPin,
+  Check,
   Mail,
   Sparkles,
-  ExternalLink,
-  BookOpen,
-  MessageSquareQuote,
+  MessageCircle,
 } from "lucide-react";
 import { GithubIcon, LinkedinIcon, TwitterXIcon } from "@/components/common/BrandIcons";
-import { UserProfile } from "@/types";
 
 interface ProfileHeroProps {
   profile: UserProfile;
@@ -33,11 +29,11 @@ export default function ProfileHero({
       if (typeof window !== "undefined") {
         await navigator.clipboard.writeText(window.location.href);
         setCopied(true);
-        onShowToast("프로필 주소가 클립보드에 복사되었습니다! 🎉");
+        onShowToast("프로필 주소가 복사되었어요 🔗");
         setTimeout(() => setCopied(false), 2000);
       }
     } catch {
-      onShowToast("URL을 복사하지 못했습니다.");
+      onShowToast("주소를 복사하지 못했어요");
     }
   };
 
@@ -45,187 +41,132 @@ export default function ProfileHero({
     if (!profile.email) return;
     try {
       await navigator.clipboard.writeText(profile.email);
-      onShowToast("이메일 주소가 복사되었습니다! ✉️");
+      onShowToast("이메일 주소가 복사되었어요 ✉️");
     } catch {
-      onShowToast("이메일을 복사하지 못했습니다.");
-    }
-  };
-
-  const getSocialIcon = (platform: string) => {
-    switch (platform) {
-      case "github":
-        return <GithubIcon className="h-4 w-4" />;
-      case "linkedin":
-        return <LinkedinIcon className="h-4 w-4" />;
-      case "twitter":
-        return <TwitterXIcon className="h-4 w-4" />;
-      case "blog":
-        return <BookOpen className="h-4 w-4" />;
-      case "email":
-        return <Mail className="h-4 w-4" />;
-      default:
-        return <ExternalLink className="h-4 w-4" />;
+      onShowToast("이메일을 복사하지 못했어요");
     }
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-zinc-200/80 bg-white/80 shadow-xl shadow-zinc-200/40 backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:shadow-black/40">
-      {/* 장식용 커버 배너 (Artistic Gradient Banner) */}
-      <div className="relative h-36 w-full overflow-hidden bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-500 sm:h-44">
-        {/* 장식용 빛망울/그리드 오버레이 */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(0,0,0,0.2),transparent_70%)]" />
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-400/20 blur-2xl" />
-        <div className="absolute left-1/3 -bottom-10 h-36 w-36 rounded-full bg-fuchsia-400/20 blur-2xl" />
-
-        {/* 상단 우측 빠른 공유 버튼 */}
-        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
-          <button
-            onClick={handleCopyProfileUrl}
-            className="flex items-center gap-1.5 rounded-full border border-white/25 bg-black/25 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm backdrop-blur-md transition-all duration-200 hover:bg-black/40 active:scale-95"
-            title="프로필 링크 복사"
-          >
-            {copied ? (
-              <>
-                <Check className="h-3.5 w-3.5 text-emerald-300" />
-                <span>복사 완료</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="h-3.5 w-3.5" />
-                <span>공유하기</span>
-              </>
+    <div className="rounded-3xl bg-white p-6 shadow-xs border border-black/[0.04] transition-all">
+      {/* 상단 프로필 헤더: 아바타 & 기본 정보 */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3.5">
+          {/* 아바타 (Toss Soft Avatar) */}
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#3182f6] to-[#1b64da] text-2xl font-bold text-white shadow-xs">
+            {profile.name[0]}
+            {/* 액티브 상태 점 */}
+            {profile.isAvailableForWork && (
+              <span
+                className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white shadow-xs"
+                title="지금 대화할 수 있어요"
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-[#20c997]" />
+              </span>
             )}
-          </button>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl font-bold tracking-tight text-[#191f28]">
+                {profile.name}
+              </h1>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#3182f6] text-[10px] text-white">
+                ✓
+              </span>
+            </div>
+            <p className="text-xs font-medium text-[#3182f6]">
+              {profile.role}
+            </p>
+            <p className="mt-0.5 font-mono text-[11px] text-[#8b95a1]">
+              {profile.handle}
+            </p>
+          </div>
         </div>
+
+        {/* 공유하기 버튼 */}
+        <button
+          onClick={handleCopyProfileUrl}
+          className="toss-press flex h-9 w-9 items-center justify-center rounded-full bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb] transition-colors"
+          title="프로필 링크 복사하기"
+        >
+          {copied ? (
+            <Check className="h-4 w-4 text-[#3182f6]" />
+          ) : (
+            <Share2 className="h-4 w-4" />
+          )}
+        </button>
       </div>
 
-      {/* 프로필 정보 컨텐츠 */}
-      <div className="relative px-6 pb-7 pt-0 text-center sm:px-8">
-        {/* 아바타 영역 (배너에 걸쳐 올라오는 형태) */}
-        <div className="relative -mt-16 mb-4 inline-block sm:-mt-20">
-          <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-3xl font-extrabold text-white shadow-2xl ring-4 ring-white transition-transform duration-300 hover:scale-105 sm:h-32 sm:w-32 sm:text-4xl dark:ring-zinc-900">
-            <span className="drop-shadow-md">{profile.name[0]}</span>
-
-            {/* 빛 반사 하이라이트 */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-white/10 to-white/30" />
-          </div>
-
-          {/* 활동 가능 상태 인디케이터 (Pulsing badge) */}
-          {profile.isAvailableForWork && (
-            <div
-              className="group absolute bottom-1 right-1 flex items-center gap-1.5 rounded-full border-2 border-white bg-emerald-500 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-md dark:border-zinc-900"
-              title={profile.statusText || "열려있는 상태"}
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-              </span>
-              <span className="hidden sm:inline">Active</span>
-            </div>
-          )}
+      {/* 실시간 상태 배너 (해요체) */}
+      {profile.statusText && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#e8f3ff] px-3.5 py-2.5 text-xs font-semibold text-[#1b64da]">
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#3182f6]" />
+          <span>{profile.statusText}</span>
         </div>
+      )}
 
-        {/* 이름 & 핸들 & 직무 */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
-              {profile.name}
-            </h1>
-            {/* 공식 인증 마크 */}
+      {/* 소개글 (해요체) */}
+      <p className="mt-3.5 whitespace-pre-line text-sm leading-relaxed text-[#4e5968]">
+        {profile.bio}
+      </p>
+
+      {/* 태그 칩들 */}
+      {profile.tags && profile.tags.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {profile.tags.map((tag) => (
             <span
-              className="inline-flex items-center justify-center rounded-full bg-blue-500 p-1 text-white shadow-xs"
-              title="인증된 프로필"
+              key={tag}
+              className="rounded-full bg-[#f2f4f6] px-2.5 py-1 text-xs font-medium text-[#4e5968]"
             >
-              <Check className="h-3 w-3 stroke-[3]" />
+              {tag}
             </span>
-          </div>
-
-          <p className="font-mono text-xs font-medium text-zinc-400 dark:text-zinc-500">
-            {profile.handle}
-          </p>
-
-          <div className="pt-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-500/10 to-indigo-500/10 px-3.5 py-1 text-xs font-semibold text-blue-600 border border-blue-500/20 dark:from-blue-500/20 dark:to-indigo-500/20 dark:text-blue-400 dark:border-blue-400/30">
-              <Sparkles className="h-3 w-3" />
-              {profile.role}
-            </span>
-          </div>
+          ))}
         </div>
+      )}
 
-        {/* 상태 메시지 배너 */}
-        {profile.statusText && (
-          <div className="mx-auto mt-4 max-w-md rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-2 text-xs font-medium text-blue-700 shadow-xs dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300">
-            {profile.statusText}
-          </div>
-        )}
+      {/* 구분선 */}
+      <div className="my-4 h-px w-full bg-[#f2f4f6]" />
 
-        {/* 소개글 */}
-        <p className="mx-auto mt-4 max-w-lg whitespace-pre-line text-sm leading-relaxed text-zinc-600 sm:text-base dark:text-zinc-300">
-          {profile.bio}
-        </p>
-
-        {/* 메타 정보: 위치 & 이메일 */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
-          {profile.location && (
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-zinc-400" />
-              {profile.location}
-            </span>
-          )}
+      {/* 소셜 채널 및 연락처 버튼 */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          {profile.socials.map((s) => (
+            <a
+              key={s.platform}
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="toss-press flex h-9 w-9 items-center justify-center rounded-xl bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb] transition-colors"
+              title={s.label}
+            >
+              {s.platform === "github" && <GithubIcon className="h-4 w-4" />}
+              {s.platform === "linkedin" && <LinkedinIcon className="h-4 w-4" />}
+              {s.platform === "twitter" && <TwitterXIcon className="h-4 w-4" />}
+              {s.platform === "email" && <Mail className="h-4 w-4" />}
+            </a>
+          ))}
           {profile.email && (
             <button
               onClick={handleCopyEmail}
-              className="inline-flex items-center gap-1 text-zinc-500 transition-colors hover:text-blue-600 dark:hover:text-blue-400"
-              title="이메일 주소 복사하기"
+              className="toss-press flex h-9 items-center gap-1 rounded-xl bg-[#f2f4f6] px-2.5 text-xs font-medium text-[#4e5968] hover:bg-[#e5e8eb] transition-colors"
+              title="이메일 복사"
             >
-              <Mail className="h-3.5 w-3.5 text-zinc-400" />
-              <span>{profile.email}</span>
-              <Copy className="h-3 w-3 opacity-60 hover:opacity-100" />
+              <Mail className="h-3.5 w-3.5" />
+              <span>이메일</span>
             </button>
           )}
         </div>
 
-        {/* 소셜 채널 빠른 링크 바 */}
-        {profile.socials && profile.socials.length > 0 && (
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            {profile.socials.map((social) => (
-              <a
-                key={social.platform}
-                href={social.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50/80 text-zinc-600 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-white hover:text-blue-600 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-zinc-400 dark:hover:border-blue-400 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
-                title={social.label}
-              >
-                {getSocialIcon(social.platform)}
-              </a>
-            ))}
-
-            {onOpenContact && (
-              <button
-                onClick={onOpenContact}
-                className="group flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 text-xs font-semibold text-zinc-700 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-white hover:text-blue-600 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-zinc-300 dark:hover:border-blue-400 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
-              >
-                <MessageSquareQuote className="h-3.5 w-3.5 text-blue-500" />
-                <span>커피챗 제안</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* 관심사 및 기술 태그 */}
-        {profile.tags && profile.tags.length > 0 && (
-          <div className="mt-5 flex flex-wrap justify-center gap-1.5">
-            {profile.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-zinc-200/60 bg-zinc-100/80 px-3 py-1 text-xs font-medium text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50/50 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-400 dark:hover:border-blue-800 dark:hover:text-blue-400"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+        {/* Toss Blue Primary Action Button */}
+        {onOpenContact && (
+          <button
+            onClick={onOpenContact}
+            className="toss-press flex h-10 items-center gap-1.5 rounded-xl bg-[#3182f6] px-4 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#1b64da]"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span>커피챗 제안하기</span>
+          </button>
         )}
       </div>
     </div>

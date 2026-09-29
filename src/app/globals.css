@@ -1,32 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-}
+  --background: #f2f4f6;
+  --foreground: #191f28;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b;
-    --foreground: #f4f4f5;
-  }
+  /* Toss Design System Colors */
+  --tds-blue-500: #3182f6;
+  --tds-blue-600: #1b64da;
+  --tds-blue-50: #e8f3ff;
+  --tds-grey-900: #191f28;
+  --tds-grey-800: #333d4b;
+  --tds-grey-700: #4e5968;
+  --tds-grey-600: #6b7684;
+  --tds-grey-500: #8b95a1;
+  --tds-grey-400: #b0b8c1;
+  --tds-grey-300: #d1d6db;
+  --tds-grey-200: #e5e8eb;
+  --tds-grey-100: #f2f4f6;
+  --tds-grey-50: #f9fafb;
+  --tds-green-500: #20c997;
+  --tds-red-500: #f04452;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Apple SD Gothic Neo", "Noto Sans KR", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 스크롤바 숨기기 유틸리티 */
+/* 숫자 고정폭(tabular-nums) */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 스크롤바 숨기기 */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
@@ -35,15 +46,10 @@ body {
   scrollbar-width: none;
 }
 
-@keyframes bounceShort {
-  0%, 100% {
-    transform: translate(-50%, 0);
-  }
-  50% {
-    transform: translate(-50%, -6px);
-  }
+/* 토스 스타일 터치 인터랙션 (Pressed Overlay) */
+.toss-press {
+  transition: transform 0.15s cubic-bezier(0.22, 0.61, 0.36, 1), background-color 0.15s ease;
 }
-
-.animate-bounce-short {
-  animation: bounceShort 0.4s ease-out;
+.toss-press:active {
+  transform: scale(0.98);
 }

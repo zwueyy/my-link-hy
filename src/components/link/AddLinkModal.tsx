@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Sparkles } from "lucide-react";
+import { X } from "lucide-react";
 import { DEFAULT_CATEGORIES } from "@/constants";
 import { LinkItem } from "@/types";
 
@@ -52,32 +52,34 @@ export default function AddLinkModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Scrim Overlay */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:p-7">
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
-              <Plus className="h-4 w-4" />
-            </span>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
-              새로운 링크 추가
+      {/* Toss Dialog Card */}
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white p-6 shadow-xl transition-all">
+        <div className="flex items-center justify-between pb-3">
+          <div>
+            <h2 className="text-lg font-bold text-[#191f28]">
+              새 링크 등록하기
             </h2>
+            <p className="mt-0.5 text-xs text-[#6b7684]">
+              서랍에 추가할 링크 정보를 입력해주세요.
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            className="rounded-full p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
+        <form onSubmit={handleSubmit} className="mt-3 space-y-3">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label className="mb-1 block text-xs font-semibold text-[#4e5968]">
               링크 제목 *
             </label>
             <input
@@ -86,13 +88,13 @@ export default function AddLinkModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="예: 2026 포트폴리오 웹사이트"
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-white"
+              className="w-full rounded-xl bg-[#f2f4f6] px-3.5 py-3 text-sm text-[#191f28] placeholder-[#b0b8c1] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3182f6]"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              URL 링크 *
+            <label className="mb-1 block text-xs font-semibold text-[#4e5968]">
+              링크 주소 (URL) *
             </label>
             <input
               type="text"
@@ -100,32 +102,32 @@ export default function AddLinkModal({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-white"
+              className="w-full rounded-xl bg-[#f2f4f6] px-3.5 py-3 text-sm text-[#191f28] placeholder-[#b0b8c1] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3182f6]"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              한 줄 설명 (선택)
+            <label className="mb-1 block text-xs font-semibold text-[#4e5968]">
+              간단한 설명 (선택)
             </label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="링크에 대한 간단한 소개를 남겨보세요"
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-white"
+              placeholder="링크에 대한 한 줄 소개를 적어주세요"
+              className="w-full rounded-xl bg-[#f2f4f6] px-3.5 py-3 text-sm text-[#191f28] placeholder-[#b0b8c1] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3182f6]"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="mb-1 block text-xs font-semibold text-[#4e5968]">
                 카테고리
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-white"
+                className="w-full rounded-xl bg-[#f2f4f6] px-3 py-3 text-xs font-medium text-[#191f28] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3182f6]"
               >
                 {DEFAULT_CATEGORIES.filter((c) => c.id !== "all").map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -136,33 +138,32 @@ export default function AddLinkModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                뱃지 (선택)
+              <label className="mb-1 block text-xs font-semibold text-[#4e5968]">
+                뱃지 라벨 (선택)
               </label>
               <input
                 type="text"
                 value={badge}
                 onChange={(e) => setBadge(e.target.value)}
                 placeholder="예: NEW, 추천"
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-white"
+                className="w-full rounded-xl bg-[#f2f4f6] px-3 py-3 text-xs text-[#191f28] placeholder-[#b0b8c1] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3182f6]"
               />
             </div>
           </div>
 
-          <div className="mt-5 flex justify-end gap-2.5 pt-2">
+          <div className="mt-5 flex gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl px-4 py-2 text-xs font-semibold text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="toss-press flex-1 rounded-xl bg-[#f2f4f6] py-3.5 text-sm font-semibold text-[#6b7684] hover:bg-[#e5e8eb]"
             >
               취소
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-700 active:scale-95"
+              className="toss-press flex-[2] rounded-xl bg-[#3182f6] py-3.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#1b64da]"
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>추가하기</span>
+              등록하기
             </button>
           </div>
         </form>
