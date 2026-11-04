@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { DEFAULT_CATEGORIES } from "@/constants";
 import { LinkItem } from "@/types";
 
 interface AddLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (newLink: Omit<LinkItem, "id" | "createdAt" | "clickCount">) => void;
+  onAdd: (
+    newLink: Omit<LinkItem, "id" | "createdAt" | "clickCount">
+  ) => Promise<void> | void;
 }
 
 export default function AddLinkModal({
@@ -21,33 +23,56 @@ export default function AddLinkModal({
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("project");
   const [badge, setBadge] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !url) return;
+    if (!title || !url || isSubmitting) return;
 
     let formattedUrl = url.trim();
     if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
       formattedUrl = `https://${formattedUrl}`;
     }
 
-    onAdd({
-      title: title.trim(),
-      url: formattedUrl,
-      description: description.trim() || undefined,
-      category,
-      badge: badge.trim() || undefined,
-      isPublic: true,
-      icon: category === "work" ? "fileText" : category === "social" ? "bookOpen" : "globe",
-    });
+    const getIconForCategory = (cat: string) => {
+      switch (cat) {
+        case "portfolio":
+          return "sparkles";
+        case "channel":
+          return "bookOpen";
+        case "project":
+          return "fileText";
+        case "contact":
+          return "coffee";
+        default:
+          return "globe";
+      }
+    };
 
-    setTitle("");
-    setUrl("");
-    setDescription("");
-    setBadge("");
-    onClose();
+    try {
+      setIsSubmitting(true);
+      await onAdd({
+        title: title.trim(),
+        url: formattedUrl,
+        description: description.trim() || undefined,
+        category,
+        badge: badge.trim() || undefined,
+        isPublic: true,
+        icon: getIconForCategory(category),
+      });
+
+      setTitle("");
+      setUrl("");
+      setDescription("");
+      setBadge("");
+      onClose();
+    } catch (error) {
+      console.error("Failed to add link:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -161,9 +186,11 @@ export default function AddLinkModal({
             </button>
             <button
               type="submit"
-              className="toss-press flex-[2] rounded-xl bg-[#3182f6] py-3.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#1b64da]"
+              disabled={isSubmitting}
+              className="toss-press flex-[2] flex items-center justify-center gap-2 rounded-xl bg-[#3182f6] py-3.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#1b64da] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              등록하기
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              <span>{isSubmitting ? "저장 중..." : "등록하기"}</span>
             </button>
           </div>
         </form>

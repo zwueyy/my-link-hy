@@ -28,21 +28,33 @@ export default function LinkCard({
   const [copied, setCopied] = useState(false);
 
   const getCategoryIcon = () => {
+    if (link.icon === "github") {
+      return <GithubIcon className="h-5 w-5 text-[#191f28]" />;
+    }
+    if (link.icon === "instagram") {
+      return <Sparkles className="h-5 w-5 text-[#e1306c]" />;
+    }
+    if (link.icon === "youtube") {
+      return <Sparkles className="h-5 w-5 text-[#ff0000]" />;
+    }
+
     switch (link.category) {
-      case "project":
+      case "portfolio":
         return <Sparkles className="h-5 w-5 text-[#3182f6]" />;
+      case "channel":
+        return <BookOpen className="h-5 w-5 text-[#e1306c]" />;
+      case "project":
+        return <FileText className="h-5 w-5 text-[#20c997]" />;
+      case "contact":
+        return <Coffee className="h-5 w-5 text-[#ff9f00]" />;
       case "work":
-        return link.icon === "github" ? (
-          <GithubIcon className="h-5 w-5 text-[#191f28]" />
-        ) : (
-          <FileText className="h-5 w-5 text-[#3182f6]" />
-        );
+        return <FileText className="h-5 w-5 text-[#3182f6]" />;
       case "social":
         return <BookOpen className="h-5 w-5 text-[#20c997]" />;
       case "tool":
         return <Globe className="h-5 w-5 text-[#ff9f00]" />;
       default:
-        return <Coffee className="h-5 w-5 text-[#f04452]" />;
+        return <Sparkles className="h-5 w-5 text-[#3182f6]" />;
     }
   };
 

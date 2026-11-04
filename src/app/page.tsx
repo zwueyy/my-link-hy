@@ -7,12 +7,22 @@ import LinkCard from "@/components/link/LinkCard";
 import ContactModal from "@/components/profile/ContactModal";
 import AddLinkModal from "@/components/link/AddLinkModal";
 import Toast from "@/components/common/Toast";
-import { DEFAULT_PROFILE, INITIAL_LINKS, DEFAULT_CATEGORIES } from "@/constants";
+import { DEFAULT_PROFILE, DEFAULT_CATEGORIES } from "@/constants";
 import { LinkItem } from "@/types";
-import { Search, Plus, RotateCcw } from "lucide-react";
+import { Search, Plus, RotateCcw, RotateCw, Loader2 } from "lucide-react";
+import { useLinks } from "@/hooks/useLinks";
 
 export default function ProfilePage() {
-  const [links, setLinks] = useState<LinkItem[]>(INITIAL_LINKS);
+  const {
+    links,
+    addLink,
+    incrementClick,
+    isLoading,
+    isUpdating,
+    isRefreshing,
+    isPending,
+    refetch,
+  } = useLinks();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -49,28 +59,31 @@ export default function ProfilePage() {
 
   // 링크 클릭 시 카운트 증가
   const handleLinkClick = (id: string) => {
-    setLinks((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, clickCount: (item.clickCount || 0) + 1 }
-          : item
-      )
-    );
+    incrementClick(id);
   };
 
-  // 새 링크 추가
-  const handleAddLink = (
+  // 새 링크 추가 (Firestore users/anonymous/links에 저장)
+  const handleAddLink = async (
     newLinkData: Omit<LinkItem, "id" | "createdAt" | "clickCount">
   ) => {
-    const newLink: LinkItem = {
-      ...newLinkData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      clickCount: 0,
-    };
-    setLinks((prev) => [newLink, ...prev]);
-    setToastMessage("새 링크가 등록되었어요 ✨");
+    try {
+      await addLink(newLinkData);
+      setToastMessage("새 링크가 등록되었어요 ✨");
+    } catch (error) {
+      console.error("Firestore 링크 추가 실패:", error);
+      setToastMessage("링크 저장에 실패했어요. 다시 시도해주세요.");
+      throw error;
+    }
   };
+
+  // 동적 통계 지표 (총 링크 개수 실시간 반영)
+  const dynamicStats = useMemo(() => {
+    return DEFAULT_PROFILE.stats.map((s) =>
+      s.iconName === "FolderGit2"
+        ? { ...s, value: `${links.length}개` }
+        : s
+    );
+  }, [links.length]);
 
   return (
     <div className="mx-auto w-full max-w-[520px] px-4 py-4 sm:py-6 space-y-4">
@@ -82,27 +95,47 @@ export default function ProfilePage() {
       />
 
       {/* 2. 핵심 지표 요약 (Toss Stats Grid) */}
-      <ProfileStats stats={DEFAULT_PROFILE.stats} />
+      <ProfileStats stats={dynamicStats} />
 
       {/* 3. 링크 섹션 헤더 & 필터/검색 */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-[#191f28]">
-              내 링크 모음
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold tracking-tight text-[#191f28]">
+                내 링크 모음
+              </h2>
+              {isPending && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#e8f3ff] px-2 py-0.5 text-[11px] font-semibold text-[#3182f6]">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>{isUpdating ? "업데이트 중" : "갱신 중"}</span>
+                </span>
+              )}
+            </div>
             <p className="text-xs text-[#6b7684]">
               자주 찾는 프로젝트와 포트폴리오예요
             </p>
           </div>
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="toss-press flex items-center gap-1 text-xs font-semibold text-[#3182f6] hover:underline"
-          >
-            <Plus className="h-4 w-4" />
-            <span>새 링크 추가</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => refetch()}
+              disabled={isPending}
+              className="toss-press flex items-center gap-1 rounded-xl bg-[#f2f4f6] px-2.5 py-1.5 text-xs font-semibold text-[#6b7684] hover:bg-[#e5e8eb] hover:text-[#191f28] disabled:opacity-50 transition-colors"
+              title="최신 링크 목록 새로고침"
+            >
+              <RotateCw className={`h-3.5 w-3.5 ${isPending ? "animate-spin text-[#3182f6]" : ""}`} />
+              <span className="hidden sm:inline">새로고침</span>
+            </button>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              disabled={isUpdating}
+              className="toss-press flex items-center gap-1 text-xs font-semibold text-[#3182f6] hover:underline disabled:opacity-50"
+            >
+              <Plus className="h-4 w-4" />
+              <span>새 링크 추가</span>
+            </button>
+          </div>
         </div>
 
         {/* 검색 입력창 */}
@@ -157,15 +190,64 @@ export default function ProfilePage() {
 
       {/* 4. 링크 리스트 목록 (Toss ListRows) */}
       <div className="space-y-2">
-        {filteredLinks.length > 0 ? (
-          filteredLinks.map((link) => (
-            <LinkCard
-              key={link.id}
-              link={link}
-              onLinkClick={handleLinkClick}
-              onShowToast={(msg) => setToastMessage(msg)}
-            />
-          ))
+        {/* 업데이트/갱신 도중 상단 인디케이터 배너 */}
+        {(isRefreshing || isUpdating) && links.length > 0 && (
+          <div className="flex items-center justify-center gap-2 rounded-2xl bg-[#e8f3ff] px-4 py-2.5 text-xs font-semibold text-[#3182f6] shadow-2xs transition-all">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <span>
+              {isUpdating
+                ? "새 링크를 저장하고 목록을 갱신하는 중이에요..."
+                : "최신 링크 목록을 불러오는 중이에요..."}
+            </span>
+          </div>
+        )}
+
+        {isLoading && links.length === 0 ? (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-center gap-2 py-3 text-xs font-medium text-[#8b95a1]">
+              <Loader2 className="h-4 w-4 animate-spin text-[#3182f6]" />
+              <span>Firestore에서 링크를 불러오는 중이에요...</span>
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3.5 rounded-3xl bg-white p-4 shadow-xs border border-black/[0.04] animate-pulse"
+              >
+                <div className="h-10 w-10 rounded-2xl bg-[#f2f4f6]" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/3 rounded-md bg-[#f2f4f6]" />
+                  <div className="h-3 w-1/2 rounded-md bg-[#f2f4f6]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredLinks.length > 0 ? (
+          <div className={`space-y-2 transition-opacity ${isPending ? "opacity-70 pointer-events-none" : "opacity-100"}`}>
+            {filteredLinks.map((link) => (
+              <LinkCard
+                key={link.id}
+                link={link}
+                onLinkClick={handleLinkClick}
+                onShowToast={(msg) => setToastMessage(msg)}
+              />
+            ))}
+          </div>
+        ) : links.length === 0 ? (
+          <div className="rounded-3xl bg-white p-8 text-center shadow-xs border border-black/[0.04]">
+            <p className="text-sm font-semibold text-[#191f28]">
+              아직 등록된 링크가 없어요
+            </p>
+            <p className="mt-1 text-xs text-[#8b95a1]">
+              새 링크 추가 버튼을 눌러 첫 번째 링크를 등록해보세요 ✨
+            </p>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="toss-press mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#3182f6] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#1b64da] transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>새 링크 추가하기</span>
+            </button>
+          </div>
         ) : (
           <div className="rounded-3xl bg-white p-8 text-center shadow-xs border border-black/[0.04]">
             <p className="text-sm font-semibold text-[#191f28]">
