@@ -6,6 +6,7 @@ import ProfileStats from "@/components/profile/ProfileStats";
 import LinkCard from "@/components/link/LinkCard";
 import ContactModal from "@/components/profile/ContactModal";
 import AddLinkModal from "@/components/link/AddLinkModal";
+import DeleteConfirmModal from "@/components/link/DeleteConfirmModal";
 import Toast from "@/components/common/Toast";
 import { DEFAULT_PROFILE, DEFAULT_CATEGORIES } from "@/constants";
 import { LinkItem } from "@/types";
@@ -16,6 +17,8 @@ export default function ProfilePage() {
   const {
     links,
     addLink,
+    updateLink,
+    removeLink,
     incrementClick,
     isLoading,
     isUpdating,
@@ -28,6 +31,7 @@ export default function ProfilePage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isContactOpen, setIsContactOpen] = useState<boolean>(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [deletingLink, setDeletingLink] = useState<LinkItem | null>(null);
 
   // 카테고리별 개수
   const categoryCounts = useMemo(() => {
@@ -72,6 +76,34 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Firestore 링크 추가 실패:", error);
       setToastMessage("링크 저장에 실패했어요. 다시 시도해주세요.");
+      throw error;
+    }
+  };
+
+  // 링크 수정 처리 (Firestore users/anonymous/links updateDoc)
+  const handleUpdateLink = async (
+    id: string,
+    updates: { title: string; url: string }
+  ) => {
+    try {
+      await updateLink(id, updates);
+    } catch (error) {
+      console.error("Firestore 링크 수정 실패:", error);
+      throw error;
+    }
+  };
+
+  // 링크 삭제 처리 (Firestore users/anonymous/links deleteDoc)
+  const handleDeleteLink = async () => {
+    if (!deletingLink) return;
+    try {
+      const targetTitle = deletingLink.title;
+      await removeLink(deletingLink.id);
+      setToastMessage(`"${targetTitle}" 링크가 삭제되었어요 🗑️`);
+      setDeletingLink(null);
+    } catch (error) {
+      console.error("Firestore 링크 삭제 실패:", error);
+      setToastMessage("링크 삭제에 실패했어요. 다시 시도해주세요.");
       throw error;
     }
   };
@@ -229,6 +261,8 @@ export default function ProfilePage() {
                 link={link}
                 onLinkClick={handleLinkClick}
                 onShowToast={(msg) => setToastMessage(msg)}
+                onUpdate={handleUpdateLink}
+                onDeleteClick={(targetLink) => setDeletingLink(targetLink)}
               />
             ))}
           </div>
@@ -282,6 +316,13 @@ export default function ProfilePage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddLink}
+      />
+
+      <DeleteConfirmModal
+        isOpen={!!deletingLink}
+        linkTitle={deletingLink?.title || ""}
+        onClose={() => setDeletingLink(null)}
+        onConfirm={handleDeleteLink}
       />
 
       <Toast

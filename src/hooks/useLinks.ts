@@ -165,6 +165,69 @@ export function useLinks() {
       } catch (err: any) {
         console.error("Firestore 링크 삭제 실패:", err);
         setError(err?.message || "링크를 삭제하는데 실패했습니다.");
+        throw err;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [fetchLinks]
+  );
+
+  // 링크 수정 시 Firestore updateDoc 후 목록 갱신
+  const updateLink = useCallback(
+    async (
+      id: string,
+      updates: {
+        title?: string;
+        url?: string;
+        description?: string;
+        category?: string;
+        badge?: string;
+        featured?: boolean;
+        isPublic?: boolean;
+      }
+    ) => {
+      setIsUpdating(true);
+      setError(null);
+
+      try {
+        const docRef = doc(
+          db,
+          COLLECTION_PATH[0],
+          COLLECTION_PATH[1],
+          COLLECTION_PATH[2],
+          id
+        );
+
+        const dataToUpdate: Record<string, any> = {};
+        if (updates.title !== undefined) {
+          dataToUpdate.title = updates.title.trim();
+        }
+        if (updates.url !== undefined) {
+          dataToUpdate.url = updates.url.trim();
+        }
+        if (updates.description !== undefined) {
+          dataToUpdate.description = updates.description.trim();
+        }
+        if (updates.category !== undefined) {
+          dataToUpdate.category = updates.category;
+        }
+        if (updates.badge !== undefined) {
+          dataToUpdate.badge = updates.badge.trim();
+        }
+        if (typeof updates.featured === "boolean") {
+          dataToUpdate.featured = updates.featured;
+        }
+        if (typeof updates.isPublic === "boolean") {
+          dataToUpdate.isPublic = updates.isPublic;
+        }
+
+        await updateDoc(docRef, dataToUpdate);
+        await fetchLinks(false);
+      } catch (err: any) {
+        console.error("Firestore 링크 수정 실패:", err);
+        setError(err?.message || "링크를 수정하는데 실패했습니다.");
+        throw err;
       } finally {
         setIsUpdating(false);
       }
@@ -209,6 +272,7 @@ export function useLinks() {
     refetch: () => fetchLinks(false),
     fetchLinks,
     addLink,
+    updateLink,
     removeLink,
     incrementClick,
   };
