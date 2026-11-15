@@ -10,6 +10,7 @@ import AddLinkModal from "@/components/link/AddLinkModal";
 import DeleteConfirmModal from "@/components/link/DeleteConfirmModal";
 import Toast from "@/components/common/Toast";
 import LandingPage from "@/components/landing/LandingPage";
+import MyPage from "@/components/profile/MyPage";
 import { DEFAULT_PROFILE, DEFAULT_CATEGORIES } from "@/constants";
 import { LinkItem, UserProfile } from "@/types";
 import {
@@ -543,7 +544,12 @@ function PageContent() {
     return <LandingPage />;
   }
 
-  // 3. 로그인 상태이거나 타인의 페이지에 접속한 경우 -> 프로필 화면 렌더링
+  // 3. 내 마이페이지 (프로필 수정 + 링크 목록)
+  if (user && !isVisitingOther) {
+    return <MyPage user={user} />;
+  }
+
+  // 4. 타인의 페이지/데모 -> 프로필 화면 렌더링
   return (
     <ProfileView
       user={user}

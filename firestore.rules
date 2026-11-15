@@ -2,17 +2,31 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 사용자별 링크 컬렉션 (users/{userId}/links)
-    // 요구사항: 조회-누구나, 수정-로그인 필수 (본인 데이터만 수정 가능)
-    match /users/{userId}/links/{linkId} {
-      // 1. 조회 (get, list): 누구나 조회 가능
-      allow read: if true;
 
-      // 2. 수정 (create, update, delete): 로그인 필수 및 요청자의 auth.uid가 문서 경로의 userId와 일치해야 함
+    // 공개 프로필: 조회-누구나, 쓰기-본인만
+    match /users/{userId} {
+      allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // 익명/공개 샘플 컬렉션 (users/anonymous/links)
+    // 링크: users/{userId}/links/{linkId}
+    match /users/{userId}/links/{linkId} {
+      // 조회: 누구나
+      allow read: if true;
+
+      // 생성/수정/삭제: 본인만
+      allow create, delete: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // 클릭 카운트: 비로그인 방문자 포함 누구나
+      // clickCount 필드만, 기존 값 대비 정확히 +1 만 허용 (increment(1))
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clickCount'])
+                    && request.resource.data.clickCount is int
+                    && request.resource.data.clickCount == resource.data.get('clickCount', 0) + 1;
+    }
+
+    // 익명/공개 샘플 컬렉션 (users/anonymous/links): 쓰기는 로그인 필요
+    // (클릭 카운트는 위의 {userId} 규칙이 anonymous 에도 적용되어 누구나 가능)
     match /users/anonymous/links/{linkId} {
       allow read: if true;
       allow write: if request.auth != null;

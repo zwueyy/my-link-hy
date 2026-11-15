@@ -9,6 +9,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { ensureProfile } from "@/lib/profile";
 
 interface AuthContextType {
   user: User | null;
@@ -33,6 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      if (currentUser) {
+        ensureProfile(currentUser).catch((e) =>
+          console.error("프로필 자동 생성 실패:", e)
+        );
+      }
     });
 
     return () => unsubscribe();

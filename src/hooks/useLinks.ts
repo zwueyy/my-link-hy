@@ -32,8 +32,11 @@ export function useLinks(customUid?: string) {
   // 3) 비로그인 방문자일 경우 'anonymous'
   const activeUid = customUid || user?.uid || "anonymous";
 
-  // 수정 권한: 로그인한 상태이며, 자신의 경로를 보고 있을 때만 true
-  const canEdit = Boolean(user && (!customUid || customUid === user.uid));
+  // 수정 권한: 본인 계정이거나 데모(익명 체험) 모드일 때 true, 타인의 프로필 페이지 방문 시에는 false
+  const canEdit = Boolean(
+    (user && (!customUid || customUid === user.uid)) ||
+    activeUid === "anonymous"
+  );
 
   // Firestore에서 링크 목록 불러오기 (경로: users/{activeUid}/links)
   const fetchLinks = useCallback(
@@ -121,6 +124,24 @@ export function useLinks(customUid?: string) {
       }
     ): Promise<string> => {
       if (!user) {
+        if (activeUid === "anonymous" || customUid === "anonymous") {
+          const mockId = `demo-${Date.now()}`;
+          const newDoc: LinkItem = {
+            id: mockId,
+            title: newLink.title.trim(),
+            url: newLink.url.trim(),
+            description: newLink.description?.trim(),
+            category: newLink.category || "project",
+            icon: newLink.icon || "globe",
+            badge: newLink.badge?.trim(),
+            isPublic: newLink.isPublic ?? true,
+            clickCount: newLink.clickCount ?? 0,
+            featured: newLink.featured ?? false,
+            createdAt: new Date().toISOString(),
+          };
+          setLinks((prev) => [newDoc, ...prev]);
+          return mockId;
+        }
         throw new Error("링크를 추가하려면 먼저 로그인이 필요합니다.");
       }
 
@@ -171,6 +192,10 @@ export function useLinks(customUid?: string) {
   const removeLink = useCallback(
     async (id: string) => {
       if (!user) {
+        if (activeUid === "anonymous" || customUid === "anonymous") {
+          setLinks((prev) => prev.filter((item) => item.id !== id));
+          return;
+        }
         throw new Error("링크를 삭제하려면 먼저 로그인이 필요합니다.");
       }
 
@@ -206,6 +231,14 @@ export function useLinks(customUid?: string) {
       }
     ) => {
       if (!user) {
+        if (activeUid === "anonymous" || customUid === "anonymous") {
+          setLinks((prev) =>
+            prev.map((item) =>
+              item.id === id ? { ...item, ...updates } : item
+            )
+          );
+          return;
+        }
         throw new Error("링크를 수정하려면 먼저 로그인이 필요합니다.");
       }
 
@@ -278,24 +311,25 @@ export function useLinks(customUid?: string) {
     }
   }, [user, fetchLinks]);
 
-  // 링크 클릭 수 증가 (누구나 가능)
+  // 링크 클릭 수 증가: 로그인 불필요(방문자 포함), Firestore increment()로 서버에서 원자적 처리(동시 클릭 안전)
   const incrementClick = useCallback(
     async (id: string) => {
-      setLinks((prev) =>
-        prev.map((link) =>
-          link.id === id
-            ? { ...link, clickCount: (link.clickCount || 0) + 1 }
-            : link
-        )
-      );
+      const patch = (delta: number) =>
+        setLinks((prev) =>
+          prev.map((link) =>
+            link.id === id
+              ? { ...link, clickCount: Math.max(0, (link.clickCount || 0) + delta) }
+              : link
+          )
+        );
 
+      patch(1); // 낙관적 UI 업데이트
       try {
         const docRef = doc(db, "users", activeUid, "links", id);
-        await updateDoc(docRef, {
-          clickCount: increment(1),
-        });
+        await updateDoc(docRef, { clickCount: increment(1) });
       } catch (err) {
-        console.warn("Firestore 클릭 수 증가 생략:", err);
+        patch(-1); // 실패 시 롤백
+        console.error("클릭 카운트 저장 실패:", err);
       }
     },
     [activeUid]
