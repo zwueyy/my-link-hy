@@ -65,7 +65,14 @@ export default function Header({ onOpenAddLink }: HeaderProps) {
     <header className="sticky top-0 z-40 w-full border-b border-[#e5e8eb] bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[520px] items-center justify-between px-4">
         {/* 로고 & 타이틀 */}
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link
+          href="/"
+          onClick={() => {
+            window.dispatchEvent(new Event("mylink:go-home"));
+            window.scrollTo({ top: 0 });
+          }}
+          className="flex items-center gap-2 group"
+        >
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3182f6] text-white font-bold text-sm shadow-xs transition-transform group-hover:scale-105">
             M
           </div>

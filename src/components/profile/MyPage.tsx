@@ -15,6 +15,13 @@ import { getProfile, updateProfile, ensureProfile } from "@/lib/profile";
 export default function MyPage({ user }: { user: User }) {
   const { links, isLoading, isUpdating, canEdit, addLink, updateLink, removeLink, incrementClick } = useLinks(user.uid);
   const [preview, setPreview] = useState(false);
+
+  // 헤더 로고 클릭 시 미리보기 모드 해제 (메인 화면으로 복귀)
+  useEffect(() => {
+    const reset = () => setPreview(false);
+    window.addEventListener("mylink:go-home", reset);
+    return () => window.removeEventListener("mylink:go-home", reset);
+  }, []);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [deletingLink, setDeletingLink] = useState<LinkItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
