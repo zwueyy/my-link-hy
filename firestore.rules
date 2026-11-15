@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 사용자별 링크 컬렉션 (users/{userId}/links)
+    // 요구사항: 조회-누구나, 수정-로그인 필수 (본인 데이터만 수정 가능)
+    match /users/{userId}/links/{linkId} {
+      // 1. 조회 (get, list): 누구나 조회 가능
+      allow read: if true;
+
+      // 2. 수정 (create, update, delete): 로그인 필수 및 요청자의 auth.uid가 문서 경로의 userId와 일치해야 함
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 익명/공개 샘플 컬렉션 (users/anonymous/links)
+    match /users/anonymous/links/{linkId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

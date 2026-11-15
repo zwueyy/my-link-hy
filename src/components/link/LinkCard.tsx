@@ -20,6 +20,7 @@ import { GithubIcon } from "@/components/common/BrandIcons";
 
 interface LinkCardProps {
   link: LinkItem;
+  canEdit?: boolean;
   onLinkClick?: (id: string) => void;
   onShowToast?: (msg: string) => void;
   onUpdate?: (
@@ -31,6 +32,7 @@ interface LinkCardProps {
 
 export default function LinkCard({
   link,
+  canEdit = true,
   onLinkClick,
   onShowToast,
   onUpdate,
@@ -294,23 +296,28 @@ export default function LinkCard({
 
       {/* 우측: 수정, 삭제, 복사 버튼 & 쉐브론 */}
       <div className="flex items-center gap-0.5 shrink-0 pl-2">
-        {/* 수정 버튼 */}
-        <button
-          onClick={handleStartEdit}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[#8b95a1] hover:bg-[#e8f3ff] hover:text-[#3182f6] transition-colors"
-          title="링크 수정"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
+        {/* 수정 및 삭제 버튼은 편집 권한(로그인)이 있을 때만 노출 */}
+        {canEdit && (
+          <>
+            {/* 수정 버튼 */}
+            <button
+              onClick={handleStartEdit}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#8b95a1] hover:bg-[#e8f3ff] hover:text-[#3182f6] transition-colors"
+              title="링크 수정"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
 
-        {/* 삭제 버튼 */}
-        <button
-          onClick={handleDeleteClick}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[#8b95a1] hover:bg-[#fff0f2] hover:text-[#f04452] transition-colors"
-          title="링크 삭제"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+            {/* 삭제 버튼 */}
+            <button
+              onClick={handleDeleteClick}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#8b95a1] hover:bg-[#fff0f2] hover:text-[#f04452] transition-colors"
+              title="링크 삭제"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </>
+        )}
 
         {/* 링크 복사 버튼 */}
         <button

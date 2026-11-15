@@ -13,12 +13,14 @@ import { GithubIcon, LinkedinIcon, TwitterXIcon } from "@/components/common/Bran
 
 interface ProfileHeroProps {
   profile: UserProfile;
+  shareUrl?: string;
   onShowToast: (msg: string) => void;
   onOpenContact?: () => void;
 }
 
 export default function ProfileHero({
   profile,
+  shareUrl,
   onShowToast,
   onOpenContact,
 }: ProfileHeroProps) {
@@ -27,9 +29,10 @@ export default function ProfileHero({
   const handleCopyProfileUrl = async () => {
     try {
       if (typeof window !== "undefined") {
-        await navigator.clipboard.writeText(window.location.href);
+        const targetUrl = shareUrl || window.location.href;
+        await navigator.clipboard.writeText(targetUrl);
         setCopied(true);
-        onShowToast("프로필 주소가 복사되었어요 🔗");
+        onShowToast("프로필 공유 주소가 복사되었어요 🔗");
         setTimeout(() => setCopied(false), 2000);
       }
     } catch {
@@ -53,8 +56,17 @@ export default function ProfileHero({
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3.5">
           {/* 아바타 (Toss Soft Avatar) */}
-          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#3182f6] to-[#1b64da] text-2xl font-bold text-white shadow-xs">
-            {profile.name[0]}
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#3182f6] to-[#1b64da] text-2xl font-bold text-white shadow-xs">
+            {profile.avatarUrl ? (
+              <img
+                src={profile.avatarUrl}
+                alt={profile.name}
+                className="h-full w-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              profile.name[0]
+            )}
             {/* 액티브 상태 점 */}
             {profile.isAvailableForWork && (
               <span
