@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pages": "next build && node scripts/deploy-docs.mjs",
     "start": "next start",
     "lint": "eslint"
   },
@@ -29,3 +30,4 @@
     "typescript": "^5"
   }
 }
+

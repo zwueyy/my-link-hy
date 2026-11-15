@@ -97,7 +97,7 @@ function ProfileView({
   // 공유 링크 생성 (본인 페이지일 경우 ?uid={user.uid})
   const shareUrl = typeof window !== "undefined"
     ? user && canEdit
-      ? `${window.location.origin}/?uid=${user.uid}`
+      ? `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/?uid=${user.uid}`
       : window.location.href
     : undefined;
 
@@ -567,3 +567,4 @@ export default function Page() {
     </Suspense>
   );
 }
+
